@@ -1,10 +1,15 @@
 package com.itheima.service.impl;
 
+import com.itheima.mapper.DeptLogMapper;
 import com.itheima.mapper.DeptMapper;
+import com.itheima.mapper.EmpMapper;
 import com.itheima.pojo.Dept;
+import com.itheima.pojo.DeptLog;
+import com.itheima.service.DeptLogService;
 import com.itheima.service.DeptService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,14 +20,30 @@ public class DeptServiceImpl implements DeptService {
     @Autowired
     private DeptMapper deptMapper;
 
+    @Autowired
+    private EmpMapper empMapper;
+
+    @Autowired
+    private DeptLogService deptLogService;
+
     @Override
     public List<Dept> list() {
         return deptMapper.list();
     }
 
+    @Transactional(rollbackFor = Exception.class) // Spring事务管理，出现任何异常，都会回滚
     @Override
     public void deleteDeptById(Integer id) {
-        deptMapper.deleteById(id);
+        try {
+            deptMapper.deleteById(id); // 根据部门id删除部门数据
+//            int i = 1/0; Arthmetic Exception
+            empMapper.deleteByDeptId(id); // 根据部门id删除该部门下的员工
+        } finally { // 删除部门时，无论删除成功还是失败，都要记录操作日志
+            DeptLog deptLog = new DeptLog();
+            deptLog.setCreateTime(LocalDateTime.now());
+            deptLog.setDescription("执行了删除部门的操作，删除" + id + "号部门");
+            deptLogService.insert(deptLog);
+        }
     }
 
     @Override

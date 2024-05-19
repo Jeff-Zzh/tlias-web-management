@@ -1,5 +1,6 @@
 package com.itheima.service.impl;
 
+import com.itheima.aop.MyLog;
 import com.itheima.mapper.DeptLogMapper;
 import com.itheima.mapper.DeptMapper;
 import com.itheima.mapper.EmpMapper;
@@ -26,11 +27,13 @@ public class DeptServiceImpl implements DeptService {
     @Autowired
     private DeptLogService deptLogService;
 
+    @MyLog
     @Override
     public List<Dept> list() {
         return deptMapper.list();
     }
 
+    @MyLog
     @Transactional(rollbackFor = Exception.class) // Spring事务管理，出现任何异常，都会回滚
     @Override
     public void deleteDeptById(Integer id) {
